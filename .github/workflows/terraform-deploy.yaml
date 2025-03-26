@@ -1,0 +1,51 @@
+name: 'Workflow - Deploy or Destroy with Terraform'
+on:
+  push:
+    branches:
+      - feature/**
+      - staging
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: "us-east-1"
+  ENVIRONMENT_STAGE: ${{ (github.ref == 'refs/heads/main' && 'production') || (github.ref == 'refs/heads/staging' && 'staging') || 'dev' }}
+  
+jobs:
+  terraform-job:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./roots/project-x-main-root/
+        shell: bash
+    environment: ${{ (github.ref == 'refs/heads/main' && 'production') || (github.ref == 'refs/heads/staging' && 'staging') || 'dev' }}
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Get Commit Message
+        id: commit_message
+        run: echo "MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.IAM_ROLE }}
+          role-session-name: GitHubActionsRoleSession
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init -backend-config="bucket=project-x-state-bucket-${ENVIRONMENT_STAGE}"
+
+      - name: Terraform Apply or Destroy
+        run: |
+          if echo "${{ env.MESSAGE }}" | grep -i "destroy"; then
+            echo "🔴 Destroying infrastructure..."
+            terraform destroy -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
+          else
+            echo "🚀 Applying infrastructure..."
+            terraform apply -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
+          fi
