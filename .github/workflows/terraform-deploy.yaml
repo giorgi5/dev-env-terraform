@@ -45,7 +45,7 @@ jobs:
           terraform_version: 1.5.7
 
       - name: Terraform Init
-        run: terraform init -backend-config="bucket=project-x-gio-state-bucket-dev"
+        run: terraform init -backend-config="bucket=project-x-gio-state-bucket-${ENVIRONMENT_STAGE}"
 
       - name: Terraform Apply or Destroy
         run: |
@@ -56,5 +56,3 @@ jobs:
             echo "🚀 Applying infrastructure..."
             terraform apply -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
           fi
-
-#tes
