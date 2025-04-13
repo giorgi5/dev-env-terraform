@@ -24,6 +24,7 @@ jobs:
     environment: ${{ (github.ref == 'refs/heads/main' && 'production') || (github.ref == 'refs/heads/staging' && 'staging') || 'dev' }}
 
     steps:
+  
       - uses: actions/checkout@v3
       
       - name: Get Commit Message
@@ -37,8 +38,13 @@ jobs:
           role-session-name: GitHubActionsRoleSession
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
       - name: Terraform Init
-        run: terraform init -backend-config="bucket=project-x-state-bucket-${ENVIRONMENT_STAGE}"
+        run: terraform init -backend-config="bucket=project-x-gio-state-bucket-${ENVIRONMENT_STAGE}"
 
       - name: Terraform Apply or Destroy
         run: |
@@ -49,3 +55,5 @@ jobs:
             echo "🚀 Applying infrastructure..."
             terraform apply -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
           fi
+
+#tes
