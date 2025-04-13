@@ -29,7 +29,8 @@ jobs:
       
       - name: Get Commit Message
         id: commit_message
-        run: echo "MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+        run: echo "message=$(git log -1 --pretty=%B | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -48,7 +49,7 @@ jobs:
 
       - name: Terraform Apply or Destroy
         run: |
-          if echo "${{ env.MESSAGE }}" | grep -i "destroy"; then
+          if echo "${{ steps.commit_message.outputs.message }}" | grep -i "destroy"; then
             echo "🔴 Destroying infrastructure..."
             terraform destroy -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
           else
