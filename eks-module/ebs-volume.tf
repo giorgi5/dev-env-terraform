@@ -1,7 +1,7 @@
 resource "aws_eks_addon" "ebs_csi_driver" {
   cluster_name    = aws_eks_cluster.k8scluster.name
   addon_name      = "aws-ebs-csi-driver"
-  addon_version   = "v1.10.1-eksbuild.1"  # Ensure this is the latest version
+  addon_version   = data.aws_eks_addon_version.ebs_csi_driver.latest_version
   service_account_role_arn = aws_iam_role.ebs_csi_driver_role.arn
 
 }
@@ -25,6 +25,6 @@ resource "aws_iam_role" "ebs_csi_driver_role" {
 
 resource "aws_iam_policy_attachment" "ebs_csi_driver_policy_attachment" {
   name       = "ebs-csi-driver-policy-attachment"
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_EBS_CSI_Driver_Policy"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEBSCSIDriverPolicy"
   roles      = [aws_iam_role.ebs_csi_driver_role.name]
 }
