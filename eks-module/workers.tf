@@ -16,8 +16,6 @@ resource "aws_eks_node_group" "k8scluster_nodegroup" {
   capacity_type  = var.workers_pricing_type
   instance_types = var.instance_types
 
-  # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
-  # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
   depends_on = [
     aws_iam_role_policy_attachment.k8scluster_nodegroup-AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.k8scluster_nodegroup-AmazonEKS_CNI_Policy,

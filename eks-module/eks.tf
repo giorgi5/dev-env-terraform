@@ -11,8 +11,6 @@ resource "aws_eks_cluster" "k8scluster" {
     service_ipv4_cidr = var.services_cidr
   }
 
-  # Ensure that IAM Role permissions are created before and deleted after EKS Cluster handling.
-  # Otherwise, EKS will not be able to properly delete EKS managed EC2 infrastructure such as Security Groups.
   depends_on = [
     aws_iam_role_policy_attachment.k8sclusterrole-AmazonEKSClusterPolicy,
     aws_iam_role_policy_attachment.k8sclusterrole-AmazonEKSVPCResourceController,
@@ -37,7 +35,6 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
-# IAM role for EKS cluster
 resource "aws_iam_role" "k8sclusterrole" {
   name               = "${local.cluster_name}-iam-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
@@ -48,20 +45,10 @@ resource "aws_iam_role_policy_attachment" "k8sclusterrole-AmazonEKSClusterPolicy
   role       = aws_iam_role.k8sclusterrole.name
 }
 
-# Optionally, enable Security Groups for Pods
-# Reference: https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html
 resource "aws_iam_role_policy_attachment" "k8sclusterrole-AmazonEKSVPCResourceController" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
   role       = aws_iam_role.k8sclusterrole.name
 }
-
-# output "endpoint" {
-#   value = aws_eks_cluster.example.endpoint
-# }
-
-# output "kubeconfig-certificate-authority-data" {
-#   value = aws_eks_cluster.example.certificate_authority[0].data
-# }
 
 resource "aws_security_group" "k8scluster-sg" {
   name        = "eks-cluster-sg-${local.cluster_name}"
