@@ -28,3 +28,8 @@ resource "aws_iam_policy_attachment" "ebs_csi_driver_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEBSCSIDriverPolicy"
   roles      = [aws_iam_role.ebs_csi_driver_role.name]
 }
+
+data "aws_eks_addon_version" "ebs_csi_driver" {
+  addon_name         = "aws-ebs-csi-driver"
+  kubernetes_version = aws_eks_cluster.k8scluster.version
+}
