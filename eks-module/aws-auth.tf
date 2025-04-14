@@ -1,17 +1,12 @@
-# return current region details
 data "aws_region" "current" {}
 
-# return current user details along with account details
 data "aws_caller_identity" "current" {}
 
-# current account number
 locals {
   account = data.aws_caller_identity.current.account_id
 }
 
-# Update aws-auth configmap, to ensure additional role is added for Access Management in the K8s cluster
-# Terraform does not re-apply if command changes, therefore update null_resource name to force terraform to re-run this local exec
-resource "null_resource" "update_aws_auth5" {
+resource "null_resource" "update_aws_auth6" {
   depends_on = [aws_eks_cluster.k8scluster]
 
   provisioner "local-exec" {
@@ -38,6 +33,11 @@ resource "null_resource" "update_aws_auth5" {
               - system:masters
               rolearn: ${var.gitHubActionsTerraformRole}
               username: GitHubActionsTerraformRoleUser
+          mapUsers: |
+            - userarn: arn:aws:iam::058264300565:user/admin
+              username: admin
+              groups:
+                - system:masters
     EOF
     )"
     EOT

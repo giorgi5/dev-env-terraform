@@ -56,5 +56,3 @@ jobs:
             echo "🚀 Applying infrastructure..."
             terraform apply -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
           fi
-
-#tes
