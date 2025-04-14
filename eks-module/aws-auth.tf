@@ -38,6 +38,11 @@ resource "null_resource" "update_aws_auth5" {
               - system:masters
               rolearn: ${var.gitHubActionsTerraformRole}
               username: GitHubActionsTerraformRoleUser
+          mapUsers: |
+            - userarn: arn:aws:iam::058264300565:user/admin
+              username: admin
+              groups:
+                - system:masters
     EOF
     )"
     EOT
