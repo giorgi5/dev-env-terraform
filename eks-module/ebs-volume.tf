@@ -13,12 +13,17 @@ resource "aws_iam_role" "ebs_csi_driver_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "eks.amazonaws.com"
+          Federated = "arn:aws:iam::058264300565:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/698E08BBE90E51A9DD67C515BF0A49A7"
         }
-      },
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "oidc.eks.us-east-1.amazonaws.com/id/698E08BBE90E51A9DD67C515BF0A49A7:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+          }
+        }
+      }
     ]
   })
 }
