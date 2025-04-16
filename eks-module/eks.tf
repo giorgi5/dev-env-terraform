@@ -22,6 +22,27 @@ resource "aws_eks_cluster" "k8scluster" {
   }
 }
 
+
+resource "aws_iam_openid_connect_provider" "oidc_provider" {
+  url = aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer
+
+  client_id_list = ["sts.amazonaws.com"]
+
+  # Dynamically fetch thumbprint using data source
+  thumbprint_list = [
+    # Use a data source to dynamically fetch the thumbprint
+    data.aws_iam_openid_connect_provider_thumbprint.oidc_thumbprint.thumbprint
+  ]
+
+  depends_on = [aws_eks_cluster.k8scluster]
+}
+
+# Data source to dynamically get the OIDC thumbprint
+data "aws_iam_openid_connect_provider_thumbprint" "oidc_thumbprint" {
+  url = aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer
+}
+
+
 output "cluster_name" {
   value = aws_eks_cluster.k8scluster.name
 }
