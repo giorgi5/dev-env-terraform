@@ -15,18 +15,19 @@ resource "aws_iam_role" "ebs_csi_driver_role" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = "arn:aws:iam::058264300565:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/698E08BBE90E51A9DD67C515BF0A49A7"
+          Federated = data.aws_iam_openid_connect_provider.oidc.arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
           StringEquals = {
-            "oidc.eks.us-east-1.amazonaws.com/id/698E08BBE90E51A9DD67C515BF0A49A7:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+            "${replace(data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
           }
         }
       }
     ]
   })
 }
+
 
 resource "aws_iam_policy_attachment" "ebs_csi_driver_policy_attachment" {
   name       = "ebs-csi-driver-policy-attachment"
