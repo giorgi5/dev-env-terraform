@@ -17,3 +17,4 @@ data "external" "oidc_thumbprint" {
 
   depends_on = [aws_eks_cluster.k8scluster]
 }
+
