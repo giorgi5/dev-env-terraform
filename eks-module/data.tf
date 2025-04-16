@@ -1,5 +1,7 @@
 data "aws_eks_cluster" "cluster" {
-  name = "project-x-eks-dev"
+  name = module.projectx-eks-cluster.cluster_name
+
+  depends_on = [module.projectx-eks-cluster]
 }
 
 data "aws_eks_cluster_auth" "cluster" {

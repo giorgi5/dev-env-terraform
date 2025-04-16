@@ -22,6 +22,10 @@ resource "aws_eks_cluster" "k8scluster" {
   }
 }
 
+output "cluster_name" {
+  value = aws_eks_cluster.k8scluster.name
+}
+
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
