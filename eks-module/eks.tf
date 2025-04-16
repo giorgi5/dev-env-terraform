@@ -86,8 +86,9 @@ resource "aws_security_group" "k8scluster-sg" {
 resource "aws_iam_openid_connect_provider" "oidc_provider" {
   url = aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer
 
-  client_id_list = ["sts.amazonaws.com"]
+  client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.external.oidc_thumbprint.result["thumbprint"]]
 
   depends_on = [aws_eks_cluster.k8scluster]
 }
+
