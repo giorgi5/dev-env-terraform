@@ -15,7 +15,7 @@ resource "aws_iam_role" "ebs_csi_driver_role" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = data.aws_iam_openid_connect_provider.oidc.arn
+          Federated = aws_iam_openid_connect_provider.oidc_provider.arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
