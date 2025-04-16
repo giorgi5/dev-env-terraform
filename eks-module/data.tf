@@ -1,5 +1,5 @@
 data "aws_eks_cluster" "cluster" {
-  name = module.projectx-eks-cluster.cluster_name
+  name = local.cluster_name
 
   depends_on = [module.projectx-eks-cluster]
 }
