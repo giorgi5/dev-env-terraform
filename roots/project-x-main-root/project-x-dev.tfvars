@@ -1,6 +1,6 @@
 vpc_id                     = "vpc-0b9f42feed9653945"
 subnet_ids                 = ["subnet-029babde0fbfaf876", "subnet-0ae8acdde01550d94"]
-cluster_version            = "1.28"
+cluster_version            = "1.32"
 services_cidr              = "10.2.0.0/16"
 stage                      = "dev"
 project                    = "project-x"
