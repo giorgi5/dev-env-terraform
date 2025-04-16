@@ -22,27 +22,6 @@ resource "aws_eks_cluster" "k8scluster" {
   }
 }
 
-
-resource "aws_iam_openid_connect_provider" "oidc_provider" {
-  url = aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer
-
-  client_id_list = ["sts.amazonaws.com"]
-
-  # Dynamically fetch thumbprint using data source
-  thumbprint_list = [
-    # Use a data source to dynamically fetch the thumbprint
-    data.aws_iam_openid_connect_provider_thumbprint.oidc_thumbprint.thumbprint
-  ]
-
-  depends_on = [aws_eks_cluster.k8scluster]
-}
-
-# Data source to dynamically get the OIDC thumbprint
-data "aws_iam_openid_connect_provider_thumbprint" "oidc_thumbprint" {
-  url = aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer
-}
-
-
 output "cluster_name" {
   value = aws_eks_cluster.k8scluster.name
 }
@@ -101,4 +80,42 @@ resource "aws_security_group" "k8scluster-sg" {
     # "aws:eks:cluster-name"                        = local.cluster_name
     "Name" = "eks-cluster-sg-${local.cluster_name}"
   }
+}
+
+# Dynamically create the OIDC provider
+resource "aws_iam_openid_connect_provider" "oidc_provider" {
+  url = aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer
+
+  client_id_list = ["sts.amazonaws.com"]
+
+  thumbprint_list = [
+    # Dynamically fetch the thumbprint
+    local.oidc_thumbprint
+  ]
+
+  depends_on = [aws_eks_cluster.k8scluster]
+}
+
+# Use a local-exec provisioner to fetch the thumbprint dynamically
+resource "null_resource" "fetch_oidc_thumbprint" {
+  provisioner "local-exec" {
+    command = "openssl s_client -connect ${aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer}:443 -servername ${aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer} </dev/null 2>/dev/null | openssl x509 -fingerprint -noout | sed 's/^.*=//'"
+    environment = {
+      OIDC_URL = aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer
+    }
+  }
+
+  triggers = {
+    cluster_name = aws_eks_cluster.k8scluster.name
+  }
+}
+
+# Capture the result of the local-exec command in a local variable
+locals {
+  oidc_thumbprint = trim(null_resource.fetch_oidc_thumbprint.stdout)
+}
+
+# Output the OIDC provider ARN
+output "oidc_provider_arn" {
+  value = aws_iam_openid_connect_provider.oidc_provider.arn
 }
