@@ -1,7 +1,7 @@
 data "aws_eks_cluster" "cluster" {
   name = local.cluster_name
 
-  depends_on = [module.projectx-eks-cluster]
+  depends_on = [aws_eks_cluster.k8scluster]
 }
 
 data "aws_eks_cluster_auth" "cluster" {
