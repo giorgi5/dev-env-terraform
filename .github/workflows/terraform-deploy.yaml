@@ -70,7 +70,7 @@ jobs:
 
       - name: Apply EFK YAMLs
         run: |
-          kubectl apply -f efk/efk-ns.yaml
-          kubectl apply -f efk/elasticsearch.yaml
-          kubectl apply -f efk/fluentd.yaml
-          kubectl apply -f efk/kibana.yaml
+          kubectl apply -f ./efk/efk-ns.yaml
+          kubectl apply -f ./efk/elasticsearch.yaml
+          kubectl apply -f ./efk/fluentd.yaml
+          kubectl apply -f ./efk/kibana.yaml
