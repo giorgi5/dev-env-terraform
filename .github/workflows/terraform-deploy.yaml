@@ -72,6 +72,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Get Commit Message
+        id: commit_message
+        run: echo "message=$(git log -1 --pretty=%B | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.IAM_ROLE }}  # Ensure this is correctly set
+          role-session-name: GitHubActionsRoleSession
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Add these secrets if not using an assumed role
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Add these secrets if not using an assumed role
+
       - name: Set kubeconfig for EKS
         run: |
           aws eks --region us-east-1 update-kubeconfig --name project-x-eks-dev
