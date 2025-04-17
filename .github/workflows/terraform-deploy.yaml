@@ -59,3 +59,14 @@ jobs:
             echo "🚀 Applying infrastructure..."
             terraform apply -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
           fi
+
+      - name: Set gp2 as default StorageClass
+        run: |
+          kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+      - name: Apply EFK YAMLs
+        run: |
+          kubectl apply -f efk/efk-ns.yaml
+          kubectl apply -f efk/elasticsearch.yaml
+          kubectl apply -f efk/fluentd.yaml
+          kubectl apply -f efk/kibana.yaml
