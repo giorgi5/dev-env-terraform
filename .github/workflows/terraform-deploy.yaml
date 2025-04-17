@@ -47,6 +47,9 @@ jobs:
       - name: Terraform Init
         run: terraform init -backend-config="bucket=project-x-gio-state-bucket-${ENVIRONMENT_STAGE}"
 
+      - name: Terraform Plan
+        run: terraform plan -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
+
       - name: Terraform Apply or Destroy
         run: |
           if echo "${{ steps.commit_message.outputs.message }}" | grep -i "destroy"; then
@@ -56,3 +59,47 @@ jobs:
             echo "🚀 Applying infrastructure..."
             terraform apply -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
           fi
+
+  efk-deploy:
+    needs: terraform-job  # Ensures the terraform-job runs first
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./efk  # Set working directory to ./efk
+        shell: bash
+    environment: ${{ (github.ref == 'refs/heads/main' && 'production') || (github.ref == 'refs/heads/staging' && 'staging') || 'dev' }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get Commit Message
+        id: commit_message
+        run: echo "message=$(git log -1 --pretty=%B | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.IAM_ROLE }}  # Ensure this is correctly set
+          role-session-name: GitHubActionsRoleSession
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Add these secrets if not using an assumed role
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Add these secrets if not using an assumed role
+
+      - name: Set kubeconfig for EKS
+        run: |
+          aws eks --region us-east-1 update-kubeconfig --name project-x-eks-dev
+
+      - name: Set gp2 as default StorageClass
+        run: |
+          kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+      - name: List contents of efk directory
+        run: |
+          ls -R  # Now this will list contents relative to the ./efk directory
+
+      - name: Apply EFK YAMLs
+        run: |
+          kubectl apply -f efk-ns.yaml
+          kubectl apply -f elasticsearch.yaml
+          kubectl apply -f fluentd.yaml
+          kubectl apply -f kibana.yaml

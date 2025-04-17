@@ -22,6 +22,10 @@ resource "aws_eks_cluster" "k8scluster" {
   }
 }
 
+output "cluster_name" {
+  value = aws_eks_cluster.k8scluster.name
+}
+
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
@@ -76,4 +80,14 @@ resource "aws_security_group" "k8scluster-sg" {
     # "aws:eks:cluster-name"                        = local.cluster_name
     "Name" = "eks-cluster-sg-${local.cluster_name}"
   }
+}
+
+# Dynamically create the OIDC provider
+resource "aws_iam_openid_connect_provider" "oidc_provider" {
+  url = aws_eks_cluster.k8scluster.identity[0].oidc[0].issuer
+
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.external.oidc_thumbprint.result["thumbprint"]]
+
+  depends_on = [aws_eks_cluster.k8scluster]
 }
