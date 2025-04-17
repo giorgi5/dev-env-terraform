@@ -60,6 +60,10 @@ jobs:
             terraform apply -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
           fi
 
+      - name: Set kubeconfig for EKS
+        run: |
+          aws eks --region us-east-1 update-kubeconfig --name project-x-eks-dev
+
       - name: Set gp2 as default StorageClass
         run: |
           kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
