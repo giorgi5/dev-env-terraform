@@ -91,4 +91,3 @@ resource "aws_iam_openid_connect_provider" "oidc_provider" {
 
   depends_on = [aws_eks_cluster.k8scluster]
 }
-
