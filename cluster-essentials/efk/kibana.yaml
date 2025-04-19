@@ -26,7 +26,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /kibana
+          - path: /
             pathType: Prefix
             backend:
               service:
