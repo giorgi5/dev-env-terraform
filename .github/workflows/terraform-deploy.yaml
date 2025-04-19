@@ -60,12 +60,12 @@ jobs:
             terraform apply -auto-approve -input=false -var-file=project-x-${ENVIRONMENT_STAGE}.tfvars
           fi
 
-  efk-deploy:
+  deploy-cluster-essentials:
     needs: terraform-job  # Ensures the terraform-job runs first
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./efk  # Set working directory to ./efk
+        working-directory: ./cluster-essentials # Set working directory to ./efk
         shell: bash
     environment: ${{ (github.ref == 'refs/heads/main' && 'production') || (github.ref == 'refs/heads/staging' && 'staging') || 'dev' }}
 
@@ -93,13 +93,17 @@ jobs:
         run: |
           kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
-      - name: List contents of efk directory
-        run: |
-          ls -R  # Now this will list contents relative to the ./efk directory
+      # - name: List contents of efk directory
+      #   run: |
+      #     ls -R  # Now this will list contents relative to the ./efk directory
 
       - name: Apply EFK YAMLs
         run: |
-          kubectl apply -f efk-ns.yaml
-          kubectl apply -f elasticsearch.yaml
-          kubectl apply -f fluentd.yaml
-          kubectl apply -f kibana.yaml
+          kubectl apply -f efk/efk-ns.yaml
+          kubectl apply -f efk/elasticsearch.yaml
+          kubectl apply -f efk/fluentd.yaml
+          kubectl apply -f efk/kibana.yaml
+
+      - name: Apply ingress-nginx YAML
+        run: |
+          kubectl apply -f ingress-nginx/ingress-nginx.yaml
