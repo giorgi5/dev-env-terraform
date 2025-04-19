@@ -24,10 +24,9 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: efk.project.com
-      http:
+    - http:
         paths:
-          - path: /
+          - path: /kibana
             pathType: Prefix
             backend:
               service:
